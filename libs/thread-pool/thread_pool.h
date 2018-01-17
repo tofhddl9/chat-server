@@ -1,29 +1,14 @@
 #include <pthread.h>
+#include "../thread-safe-queue/thread_safe_queue.h"
 
-typedef struct jobQueue {
-  void (*job)(void) *queue;
-  int head;
-  int tail;
-  int size;
-  //TODO : make thread-safety
-
-}jobQueue;
-
-typedef struct threadPool {
-  jobQueue jobQueue;
+typedef struct thread_pool {
+  thread_safe_queue queue;
   pthread_t *threads;
-  int threadNum;
+  size_t thread_num;
   
-}threadPool;
+} thread_pool;
 
-int IsEmpty(jobQueue *jq);
-int IsFull(jobQueue *jq);
-void JobQueueInit(jobQueue *jq, int queueSize);
-void Enqueue(jobQueue &jq, void (*job)(void));
-void (*job)(void) Dequeue(jobQueue *jq);
+thread_pool *create_thread_pool(size_t thread_num, size_t queue_size);
+void add_job_in_pool(thread_pool *tp, job_t func);
 
-threadPool *ThreadPoolCreate(int threadNum, int queueSize);
-void ThreadPoolAdd(threadPool *tp, void *func());
-
-//void *WaitJob(threadPool *tp);
-void ThreadWork();
+void thread_work(void *pool);
