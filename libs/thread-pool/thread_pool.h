@@ -3,6 +3,8 @@
 #include <pthread.h>
 #include "../thread-safe-queue/thread_safe_queue.h"
 
+typedef void *(*job_t)(void *);
+
 typedef struct thread_pool {
   thread_safe_queue jobs;
   pthread_t *threads;
