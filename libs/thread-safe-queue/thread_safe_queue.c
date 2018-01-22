@@ -1,50 +1,64 @@
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "thread_safe_queue.h"
 
+lock_t val = 0;
+lock_t expected = 0;
+lock_t desired = 1;
 
-thread_safe_queue *create_queue(size_t element_size, size_t q_size)
+void lock(lock_t *val)
 {
-  thread_safe_queue *sq = NULL;
-  sq->queue = (void *)malloc(element_size * q_size); 
-  sq->size = q_size;
-  sq->head = sq->tail = 0;
-
-  return sq;
+  while (__atomic_compare_exchange(val, &expected, &desired,
+    1, __ATOMIC_RELAXED, __ATOMIC_RELAXED) != 0);
 }
 
-int is_empty(thread_safe_queue *sq)
+void unlock(lock_t *val)
 {
-  if (sq->head == sq->tail)
+  __atomic_sub_fetch(val, 1, __ATOMIC_RELAXED);
+}
+
+void init_queue(thread_safe_queue **sq, size_t q_size)
+{
+  (*sq)->size = q_size;
+  (*sq)->head = 0;
+  (*sq)->tail = 0;
+}
+
+int is_empty(thread_safe_queue **sq)
+{
+  if ((*sq)->head == (*sq)->tail)
     return 1;
   return 0;
 }
 
-int is_full(thread_safe_queue *sq)
+int is_full(thread_safe_queue **sq)
 {
-  if (sq->head == ((sq->tail+1) % sq->size))
+  if ((*sq)->head == (((*sq)->tail+1) % (*sq)->size))
     return 1;
   return 0;
 }
 
-void enqueue(thread_safe_queue *sq, job_t job)
+void enqueue(thread_safe_queue **sq, void *job)
 {
-  //lock
-  if (is_full(sq) != 0) {
-    sq->queue[(sq->tail+1)%(sq->size)] = job;
+  int ret = is_full(sq);
+  lock(&val);
+  if (ret == 0) {
+    (*sq)->queue[((*sq)->tail++)%(*sq)->size] = job;
   }
   //else error
-  //unlock
+  unlock(&val);
 }
 
-job_t dequeue(thread_safe_queue *sq)
+void *dequeue(thread_safe_queue **sq)
 {
-  //lock
-  job_t job;
-  if (is_empty(sq) != 0) {
-    job = sq->queue[sq->head];
-    sq->head = (++(sq->head) % sq->size);
+  void *job;
+  int ret = is_empty(sq);
+  lock(&val);
+  if (ret == 0) {
+    job = (*sq)->queue[(*sq)->head];
+    (*sq)->head = (++(*sq)->head) % (*sq)->size;
   }
-  //unlock
+  unlock(&val);
   return job;
 }
