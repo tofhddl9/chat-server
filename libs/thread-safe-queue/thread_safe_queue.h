@@ -9,13 +9,11 @@ typedef struct thread_safe_queue {
   size_t tail;
   size_t size;
   char _lock;
-  char expected;
-  char desired;
 
 } thread_safe_queue;
 
-void lock(thread_safe_queue *sq);
-void unlock(thread_safe_queue *sq);
+void lock(char *sq);
+void unlock(char *sq);
 
 void init_queue(thread_safe_queue *sq, size_t q_size);
 char is_empty(thread_safe_queue *sq);
