@@ -3,23 +3,24 @@
 
 #include <sys/types.h>
 
-typedef char lock_t;
-
 typedef struct thread_safe_queue {
   void **queue;
   size_t head;
   size_t tail;
   size_t size;
+  char _lock;
+  char expected;
+  char desired;
 
 } thread_safe_queue;
 
-void lock(lock_t *s);
-void unlock(lock_t *s);
+void lock(thread_safe_queue *sq);
+void unlock(thread_safe_queue *sq);
 
-void init_queue(thread_safe_queue **sq, size_t q_size);
-int is_empty(thread_safe_queue **sq);
-int is_full(thread_safe_queue **sq);
-void enqueue(thread_safe_queue **sq, void *item);
-void *dequeue(thread_safe_queue **sq);
+void init_queue(thread_safe_queue *sq, size_t q_size);
+char is_empty(thread_safe_queue *sq);
+char is_full(thread_safe_queue *sq);
+char enqueue(thread_safe_queue *sq, void *item);
+void *dequeue(thread_safe_queue *sq);
 
 #endif

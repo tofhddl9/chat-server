@@ -1,64 +1,77 @@
 #include <stdlib.h>
-#include <pthread.h>
 
 #include "thread_safe_queue.h"
 
-lock_t val = 0;
-lock_t expected = 0;
-lock_t desired = 1;
-
-void lock(lock_t *val)
+void lock(thread_safe_queue *sq)
 {
-  while (__atomic_compare_exchange(val, &expected, &desired,
-    1, __ATOMIC_RELAXED, __ATOMIC_RELAXED) != 0);
+  while (__atomic_compare_exchange(&(sq->_lock), &(sq->expected),
+    &(sq->desired), 1, __ATOMIC_RELAXED, __ATOMIC_RELAXED) == 0);
 }
 
-void unlock(lock_t *val)
+void unlock(thread_safe_queue *sq)
 {
-  __atomic_sub_fetch(val, 1, __ATOMIC_RELAXED);
+  __atomic_store(&sq->_lock, &(sq->expected), __ATOMIC_RELAXED);
 }
 
-void init_queue(thread_safe_queue **sq, size_t q_size)
+void init_queue(thread_safe_queue *sq, size_t q_size)
 {
-  (*sq)->size = q_size;
-  (*sq)->head = 0;
-  (*sq)->tail = 0;
+  sq->size = q_size;
+  sq->head = 0;
+  sq->tail = 0;
+  sq->_lock = 0;
+  sq->expected = 0;
+  sq->desired = 1;
 }
 
-int is_empty(thread_safe_queue **sq)
+char is_empty(thread_safe_queue *sq)
 {
-  if ((*sq)->head == (*sq)->tail)
-    return 1;
-  return 0;
+  char ret;
+  lock(sq);
+  if (sq->head == sq->tail)
+    ret = 1;
+  else
+    ret = 0;
+  unlock(sq);
+
+  return ret;
 }
 
-int is_full(thread_safe_queue **sq)
+char is_full(thread_safe_queue *sq)
 {
-  if ((*sq)->head == (((*sq)->tail+1) % (*sq)->size))
-    return 1;
-  return 0;
+  char ret;
+  lock(sq);
+  if (sq->head == (sq->tail+1 % sq->size))
+    ret = 1;
+  else
+    ret = 0;
+  unlock(sq);
+
+  return ret;
 }
 
-void enqueue(thread_safe_queue **sq, void *job)
+char enqueue(thread_safe_queue *sq, void *job)
 {
-  int ret = is_full(sq);
-  lock(&val);
-  if (ret == 0) {
-    (*sq)->queue[((*sq)->tail++)%(*sq)->size] = job;
-  }
-  //else error
-  unlock(&val);
+  char ret = is_full(sq);
+  lock(sq);
+  if (ret == 0)
+    sq->queue[(sq->tail++) % sq->size] = job;
+  else
+    ret = -1;
+  unlock(sq);
+
+  return ret;
 }
 
-void *dequeue(thread_safe_queue **sq)
+void *dequeue(thread_safe_queue *sq)
 {
-  void *job;
+  void *job = NULL;
   int ret = is_empty(sq);
-  lock(&val);
+  lock(sq);
   if (ret == 0) {
-    job = (*sq)->queue[(*sq)->head];
-    (*sq)->head = (++(*sq)->head) % (*sq)->size;
+    job = sq->queue[sq->head];
+    sq->head = (++sq->head) % sq->size;
   }
-  unlock(&val);
+  unlock(sq);
+
   return job;
 }
