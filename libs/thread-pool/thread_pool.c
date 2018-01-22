@@ -1,81 +1,34 @@
 #include "thread_pool.h"
-
 #include <stdlib.h>
 
-void jobQueueInit(jobQueue *jq, int size)
-{
-  jq->size = size;
-  jq->head = jq->tail = 0;
-  jq = (jobQueue *)malloc(sizeof(jobQueue)*size); 
-}
+#include <pthread.h>
 
-int IsEmpty(jobQueue *jp)
-{
-
-}
-
-int IsFull(jobQueue *jp)
-{
-
-}
-
-void Enqueue(jobQueue *jq, void (*job)(void))
-{
-  //lock
-  if (IsFull(jq) != 0) {
-    jq->queue[(jq->tail+1)%(jq->size)];
-  }
-  //else error
-  //unlock
-}
-
-void (*job)(void) Dequeue(jobQueue *jq)
-{
-  //lock
-  void (*job)(void) = NULL;
-  if (IsEmpty(jq) != 0) {
-    job = jq->queue[jq->head];
-    head = ++head % jq->size;
-  }
-  return job;
-}
-
-threadPool *ThreadPoolCreate(int threadNum, int queueSize)
+void init_thread_pool(thread_pool *tp, size_t thread_num, size_t queue_size)
 {
   int i;
 
-  threadPool *tp;
-  tp = (threadPool *)malloc(sizeof(threadPool));
-  JobQueueInit(&(tp->jobQueue), queueSize);
+  tp->thread_num = thread_num;
+  tp->threads = (pthread_t *)malloc(sizeof(pthread_t) * thread_num);
+  for (i = 0; i < thread_num; ++i) {
+    pthread_create(&tp->threads[i], NULL, thread_work, &tp);
+  }
   
-  tp->threadNum = threadNum;
-  tp->threads = (pthread_t *)malloc(sizeof(pthread_t) * threadNum);
-  for (i = 0; i < threadNum; ++i) {
-    pthread_create(&(tp->threads[i]), NULL, ThreadWork, (void *)tp);
-  }
-
-  return tp;
+  tp->jobs = (thread_safe_queue *)malloc(sizeof(thread_safe_queue));
+  tp->jobs->queue = (void **)malloc(sizeof(void *) * queue_size);
+  init_queue(tp->jobs, queue_size);
 }
 
-void ThreadPoolAddJob(threadPool *tp, void (*job)())
+void add_job_in_pool(thread_pool *tp, job_t job)
 {
-  //lock
-  if (!IsFull(tp->jobQueue)) {
-    Enqueue(tp->jobQueue, job);
-  }
-  //unlock
+  enqueue(tp->jobs, job);
 }
 
-void ThreadWork(void *pool)
+void *thread_work(void *pool)
 {
-  threadPool *tp = (threadPool *)pool;
+  thread_pool *tp = (thread_pool *)pool;
   void (*fp)();
   while (1) {
-    //lock
-    if (!IsEmpty(tp->jobQueue)) { //WaitJob
-      fp = Dequeue(tp->jobQueue);
-      fp();
-    }
-    //unlock
+    fp = dequeue(tp->jobs);
+    fp();
   }
 }
