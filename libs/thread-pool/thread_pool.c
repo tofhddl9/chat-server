@@ -13,6 +13,10 @@ void init_thread_pool(thread_pool *tp, size_t thread_num, size_t queue_size)
   tp->jobs = (thread_safe_queue *)malloc(sizeof(thread_safe_queue));
   tp->jobs->queue = (void **)malloc(sizeof(void *) * queue_size);
   init_queue(tp->jobs, queue_size);
+
+  for (i = 0; i < tp->thread_num; ++i) {
+    pthread_create(&tp->threads[i], NULL, thread_work, (void *)tp);
+  }
 }
 
 void add_job_in_pool(thread_pool *tp, job_t job)
