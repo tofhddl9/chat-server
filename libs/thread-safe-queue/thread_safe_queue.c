@@ -63,7 +63,7 @@ char enqueue(thread_safe_queue *sq, void *job)
 void *dequeue(thread_safe_queue *sq)
 {
   void *job = NULL;
-  int ret = is_empty(sq);
+  char ret = is_empty(sq);
   lock(&sq->_lock);
   if (ret == 0) {
     job = sq->queue[sq->head];
