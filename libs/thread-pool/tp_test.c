@@ -15,12 +15,15 @@ int main()
   thread_pool *tp = NULL;
   tp = (thread_pool *)malloc(sizeof(thread_pool));
   init_thread_pool(tp, 10, 200);
- 
+  
+  printf("can i called?\n");
+
   for (i = 0 ;i < 400; ++i) {
     add_job_in_pool(tp, add_one(&val));
     printf("head:%d tail:%d val:%d\n",tp->jobs->head, tp->jobs->tail, val);
   }
   printf("%d\n",val);
 
+  free_thread_pool_with_join(tp);
   return 0;
 }
