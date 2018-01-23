@@ -37,7 +37,7 @@ char is_full(thread_safe_queue *sq)
 {
   char ret;
   lock(&sq->_lock);
-  if (sq->head == (sq->tail+1 % sq->size))
+  if (sq->head == ((sq->tail)+1 % sq->size))
     ret = 1;
   else
     ret = 0;
@@ -50,12 +50,13 @@ char enqueue(thread_safe_queue *sq, void *job)
 {
   char ret = is_full(sq);
   lock(&sq->_lock);
-  if (ret == 0)
-    sq->queue[(sq->tail++) % sq->size] = job;
+  if (ret == 0) {
+    sq->queue[sq->tail] = job;
+    sq->tail = ((sq->tail + 1) % sq->size);
+  }
   else
     ret = -1;
   unlock(&sq->_lock);
-
   return ret;
 }
 
@@ -66,7 +67,7 @@ void *dequeue(thread_safe_queue *sq)
   lock(&sq->_lock);
   if (ret == 0) {
     job = sq->queue[sq->head];
-    sq->head = (++sq->head) % sq->size;
+    sq->head = (((sq->head) + 1) % sq->size);
   }
   unlock(&sq->_lock);
 
