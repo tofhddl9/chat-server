@@ -12,9 +12,11 @@ void unlock(char *val)
   __atomic_clear(val, __ATOMIC_RELAXED);
 }
 
-void init_queue(thread_safe_queue *sq, size_t q_size)
+void init_queue(thread_safe_queue *sq, size_t e_size, size_t q_size)
 {
-  sq->size = q_size;
+  sq->queue = (char *)malloc(e_size * q_size);
+  sq->queue_size = q_size;
+  sq->element_size = e_size;
   sq->head = 0;
   sq->tail = 0;
   sq->_lock = 0;
@@ -37,7 +39,7 @@ char is_full(thread_safe_queue *sq)
 {
   char ret;
   lock(&sq->_lock);
-  if (sq->head == ((sq->tail+1) % sq->size))
+  if (sq->head == sq->tail)
     ret = 1;
   else
     ret = 0;
@@ -46,30 +48,28 @@ char is_full(thread_safe_queue *sq)
   return ret;
 }
 
-char enqueue(thread_safe_queue *sq, void *job)
+char enqueue(thread_safe_queue *sq, char *item)
 {
   char ret = is_full(sq);
   lock(&sq->_lock);
   if (ret == 0) {
-    sq->queue[sq->tail] = job;
-    sq->tail = ((sq->tail+1) % sq->size);
+    memcpy(sq->queue[sq->tail * sq->element_size], item, sq->element_size);
+    sq->tail = (sq->tail + 1) % sq->queue_size;
   }
-  else
-    ret = -1;
   unlock(&sq->_lock);
+  // if (ret != 0) throw error
   return ret;
 }
 
-void *dequeue(thread_safe_queue *sq)
+char dequeue(thread_safe_queue *sq, char *out)
 {
-  void *job = NULL;
   char ret = is_empty(sq);
   lock(&sq->_lock);
   if (ret == 0) {
-    job = sq->queue[sq->head];
-    sq->head = (((sq->head) + 1) % sq->size);
+    memcpy(out, sq->queue[sq->head * sq->element_size], sq->element_size);
+    sq->head = (sq->head + 1) % sq->queue_size;
   }
   unlock(&sq->_lock);
-
-  return job;
+  // if (ret != 0) throw error
+  return ret;
 }
