@@ -1,6 +1,8 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "thread_safe_queue.h"
+
 
 void lock(char *val)
 {
