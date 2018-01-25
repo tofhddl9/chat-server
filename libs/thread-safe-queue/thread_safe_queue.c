@@ -24,7 +24,7 @@ void init_queue(thread_safe_queue *sq, size_t e_size, size_t q_size)
   sq->_lock = 0;
 }
 
-char is_empty(thread_safe_queue *sq)
+int8_t is_empty(thread_safe_queue *sq)
 {
   char ret;
   lock(&sq->_lock);
@@ -37,7 +37,7 @@ char is_empty(thread_safe_queue *sq)
   return ret;
 }
 
-char is_full(thread_safe_queue *sq)
+int8_t is_full(thread_safe_queue *sq)
 {
   char ret;
   lock(&sq->_lock);
@@ -50,7 +50,7 @@ char is_full(thread_safe_queue *sq)
   return ret;
 }
 
-char enqueue(thread_safe_queue *sq, char *item)
+int8_t enqueue(thread_safe_queue *sq, char *item)
 {
   char ret = is_full(sq);
   lock(&sq->_lock);
@@ -63,7 +63,7 @@ char enqueue(thread_safe_queue *sq, char *item)
   return ret;
 }
 
-char dequeue(thread_safe_queue *sq, char *out)
+int8_t dequeue(thread_safe_queue *sq, char *out)
 {
   char ret = is_empty(sq);
   lock(&sq->_lock);

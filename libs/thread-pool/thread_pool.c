@@ -17,11 +17,12 @@ void init_thread_pool(thread_pool *tp, size_t th_num, size_t e_size, size_t q_si
   }
 }
 
-void add_job_in_pool(thread_pool *tp, job *job)
+int8_t add_job_in_pool(thread_pool *tp, job *job)
 {
   char status = enqueue(&tp->jobs, (char*)job);
   if (status != 0)
-    printf("queue is full\n");
+    return -1;
+  return 0;
 }
 
 void free_thread_pool(thread_pool *tp)

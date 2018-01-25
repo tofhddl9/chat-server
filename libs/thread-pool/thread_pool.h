@@ -18,7 +18,7 @@ typedef struct thread_pool {
 } thread_pool;
 
 void init_thread_pool(thread_pool *tp, size_t th_num, size_t e_size, size_t q_size);
-void add_job_in_pool(thread_pool *tp, job *job);
+int8_t add_job_in_pool(thread_pool *tp, job *job);
 void free_thread_pool(thread_pool *tp);
 void free_thread_pool_with_join(thread_pool *tp);
 
