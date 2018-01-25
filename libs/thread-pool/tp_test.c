@@ -4,26 +4,38 @@
 
 static int val = 0;
 
-void *add_one(int *tmp)
+struct triple_int_add_args {
+  int a;
+  int b;
+  int c;
+};
+
+void triple_int_add(void *args)
 {
-  *tmp = *tmp + 1;
+  int sum = 0;
+  struct triple_int_add_args *tiaa = (struct triple_int_add_args *)args;
+  printf("%d\n",tiaa->a + tiaa->b + tiaa->c);
 }
 
 int main()
 {
   int i;
+  job j;
+  struct triple_int_add_args a1 = {1,2,3};
+
+  j.func = triple_int_add;
+  j.args = (void *)&a1;
+
   thread_pool *tp = NULL;
   tp = (thread_pool *)malloc(sizeof(thread_pool));
-  init_thread_pool(tp, 10, 200);
+  init_thread_pool(tp, 10, sizeof(j), 400);
   
-  printf("can i called?\n");
-
-  for (i = 0 ;i < 400; ++i) {
-    add_job_in_pool(tp, add_one(&val));
-    printf("head:%d tail:%d val:%d\n",tp->jobs->head, tp->jobs->tail, val);
+  for (i = 0 ;i < 200; ++i) {
+    a1.a=0;
+    a1.b=0;
+    a1.c=i;
+    add_job_in_pool(tp, &j);
   }
-  printf("%d\n",val);
-
   free_thread_pool_with_join(tp);
   return 0;
 }
