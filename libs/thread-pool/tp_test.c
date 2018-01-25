@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "thread_pool.h"
 
-static int val = 0;
 
 struct triple_int_add_args {
   int a;
@@ -20,21 +19,22 @@ void triple_int_add(void *args)
 int main()
 {
   int i;
-  job j;
-  struct triple_int_add_args a1 = {1,2,3};
-
-  j.func = triple_int_add;
-  j.args = (void *)&a1;
+  job j[230];
+  struct triple_int_add_args a1[230];
 
   thread_pool *tp = NULL;
   tp = (thread_pool *)malloc(sizeof(thread_pool));
-  init_thread_pool(tp, 10, sizeof(j), 400);
+  init_thread_pool(tp, 5, sizeof(j[0]), 100);
   
-  for (i = 0 ;i < 200; ++i) {
-    a1.a=0;
-    a1.b=0;
-    a1.c=i;
-    add_job_in_pool(tp, &j);
+  int ret;
+  for (i = 0 ;i < 230; ++i) {
+    j[i].func = triple_int_add;
+    j[i].args = (void *)&a1[i];
+    a1[i].a = 0;
+    a1[i].b = 0;
+    a1[i].c = i;
+    while ((ret = add_job_in_pool(tp, &j[i])) < 0);
+
   }
   free_thread_pool_with_join(tp);
   return 0;
