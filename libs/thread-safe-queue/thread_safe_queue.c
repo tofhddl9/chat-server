@@ -33,7 +33,7 @@ char is_empty(thread_safe_queue *sq)
   else
     ret = 0;
   unlock(&sq->_lock);
-
+  
   return ret;
 }
 
@@ -41,7 +41,7 @@ char is_full(thread_safe_queue *sq)
 {
   char ret;
   lock(&sq->_lock);
-  if (sq->head == sq->tail)
+  if (sq->head == ((sq->tail + 1) % sq->queue_size))
     ret = 1;
   else
     ret = 0;
@@ -55,7 +55,7 @@ char enqueue(thread_safe_queue *sq, char *item)
   char ret = is_full(sq);
   lock(&sq->_lock);
   if (ret == 0) {
-    memcpy(sq->queue[sq->tail * sq->element_size], item, sq->element_size);
+    memcpy(&sq->queue[sq->tail * sq->element_size], item, sq->element_size);
     sq->tail = (sq->tail + 1) % sq->queue_size;
   }
   unlock(&sq->_lock);
@@ -68,7 +68,7 @@ char dequeue(thread_safe_queue *sq, char *out)
   char ret = is_empty(sq);
   lock(&sq->_lock);
   if (ret == 0) {
-    memcpy(out, sq->queue[sq->head * sq->element_size], sq->element_size);
+    memcpy(out, &sq->queue[sq->head * sq->element_size], sq->element_size);
     sq->head = (sq->head + 1) % sq->queue_size;
   }
   unlock(&sq->_lock);
