@@ -30,10 +30,10 @@ void register_sock(struct io_manager *io_m, int fd, uint8_t is_listen_fd)
 
 void delete_sock(struct io_manager *io_m, int fd)
 {
+  epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+  close(fd);
 }
 
 void do_io(struct io_manager *io_m, listen_sock_handler, client_sock_handler)
 {
 }
-
-
