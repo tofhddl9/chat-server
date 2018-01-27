@@ -10,7 +10,7 @@ struct io_manager {
 }
 
 void init_io(struct io_manager *io_m, size_t thread_num, size_t max_event_num);
-void register_sock();
-void delete_sock();
-void do_io();
+void register_sock(struct io_manager *io_m, int fd, int8_t fd_type, );
+void delete_sock(struct io_manager *io_m, int fd);
+void do_io(struct io_manager *io_m, listen_sock_handler, client_sock_handler);
 #endif
