@@ -20,6 +20,12 @@ void init_io(struct io_manager *io_m, size_t thread_num, size_t max_event_num)
 
 void register_sock(struct io_manager *io_m, int fd, uint8_t is_listen_fd)
 {
+  struct epoll_event read_event = {EPOLLIN, listen_fd};
+  
+  if (is_listen_fd)
+    io_m->listen_fd = fd;
+
+  epoll_ctl(io_m->epoll_fd, EPOLL_CTL_ADD, fd, &read_event);
 }
 
 void delete_sock(struct io_manager *io_m, int fd)
@@ -29,4 +35,5 @@ void delete_sock(struct io_manager *io_m, int fd)
 void do_io(struct io_manager *io_m, listen_sock_handler, client_sock_handler)
 {
 }
+
 
