@@ -36,4 +36,20 @@ void delete_sock(struct io_manager *io_m, int fd)
 
 void do_io(struct io_manager *io_m, listen_sock_handler, client_sock_handler)
 {
+  int i, event_num;
+
+  while (1) {
+    event_num = epoll_wait(io_m->epoll_fd,
+        io_m->events, io_m->max_event_num, -1);
+
+    for (i = 0; i < event_num; ++i) {
+      if (events[i].data.fd == listen_fd) {
+        add_job_in_pool(io_m->tp, listen_sock_handler);
+      }
+      else if (events.data.fd == client_fd) {
+        add_job_in_pool(io_m->tp, client_sock_handler);
+      }
+    }
+    // problem : type of 2nd param of 'add_job_in_pool' is struct job..{func, args}
+  }
 }
