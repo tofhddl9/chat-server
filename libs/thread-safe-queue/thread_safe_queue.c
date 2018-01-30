@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h> // for debugging
 
 #include "thread_safe_queue.h"
 
@@ -56,7 +57,7 @@ int8_t enqueue(thread_safe_queue *sq, char *item)
   if (ret == 0) {
     memcpy(&sq->queue[sq->tail * sq->element_size], item, sq->element_size);
     sq->tail = (sq->tail + 1) % sq->queue_size;
-    printf("[enqueue] head : %d tail : %d\n", sq->head, sq->tail);
+    printf("[enqueue] head : %lu tail : %lu\n", sq->head, sq->tail);
   }
   unlock(&sq->_lock);
   // if (ret != 0) throw error
@@ -70,7 +71,7 @@ int8_t dequeue(thread_safe_queue *sq, char *out)
   if (ret == 0) {
     memcpy(out, &sq->queue[sq->head * sq->element_size], sq->element_size);
     sq->head = (sq->head + 1) % sq->queue_size;
-    printf("[dequeue] head : %d tail : %d\n", sq->head, sq->tail);
+    printf("[dequeue] head : %lu tail : %lu\n", sq->head, sq->tail);
   }
   unlock(&sq->_lock);
   // if (ret != 0) throw error

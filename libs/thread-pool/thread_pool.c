@@ -1,10 +1,11 @@
 #include "thread_pool.h"
 #include <stdlib.h>
-#include <stdio.h>
+#include <unistd.h> // for debugging
+#include <stdio.h> // for debugging
 
 #include <pthread.h>
 
-#include <syscall.h>
+#include <sys/syscall.h> // for debugging
 
 void init_thread_pool(thread_pool *tp, size_t th_num, size_t e_size, size_t q_size)
 {
@@ -55,7 +56,7 @@ void *thread_work(void *pool)
   char ret;
 
   thread_pool *tp = (thread_pool *)pool;
-  printf("[%lu] thread work hard\n",syscall(SYS_gettid));
+  printf("[%ld] thread work hard\n",syscall(SYS_gettid));
 
   while (1) {
     ret = dequeue(&tp->jobs, (char *)&work);
