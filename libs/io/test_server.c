@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -7,13 +9,15 @@
 
 #include "io.h"
 
-#include <syscall.h> ////
+#include <syscall.h>
+#include <errno.h>
 
 void wait_connection(void *fd);
 void chat(void *args);
 
 struct io_manager io_m;
 struct sockaddr_in client_addr;
+
 int main()
 {
   int listen_fd, client_fd;
@@ -25,7 +29,7 @@ int main()
   memset(&server_addr, 0, sizeof(server_addr));
   server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
-  server_addr.sin_port = htons(7777);
+  server_addr.sin_port = htons(8888);
 
   bind(listen_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
@@ -46,24 +50,53 @@ int main()
 void wait_connection(void *args)
 {
   int id, fd, size, client_fd, client_addr_len;
-  id = (uint64_t)args >> 32;
   fd = (uint64_t)args & 0x00000000ffffffff;
 
-  //printf("[%lu] id : %d fd : %d in wc\n",syscall(SYS_gettid), id, fd);
-  
-  client_addr_len = sizeof(client_addr);
-  client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_addr_len);
-  printf("client_fd : %d\n",client_fd);
-  register_sock(&io_m, client_fd, 1);
+  while (1) {
+    client_addr_len = sizeof(client_addr);
+    client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_addr_len);
+    if (client_fd < 0) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        break;
+      }
+      else {
+        perror("accept() error");
+        exit(1);
+      }
+    }
+    else {
+      printf("accept new client_fd : [%d]\n", client_fd);
+      register_sock(&io_m, client_fd, 1);
+    }
+  }
   
 }
 
 void chat(void *args)
 {
-  printf("chat() work!\n");
-  int fd;
+  int fd, readed;
   char buf[1024];
   fd = (uint64_t)args & 0x00000000ffffffff;
-  read(fd, buf, 14);
-  printf("%s\n",buf);
+  
+  while (1) {
+    readed = read(fd, buf, 14);
+    if (readed < 0) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        break;
+      } 
+      else {
+        perror("read() error");
+        exit(1);
+      }
+    }
+    else if (readed == 0) {
+      close(fd);
+      break;
+    }
+    else {
+      write(fd, buf, 14);
+    }
+  }
+  
+  printf("[fd : %d]read finish\n", fd);
 }
