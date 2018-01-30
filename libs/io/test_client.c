@@ -14,6 +14,16 @@ int main()
   char *buf = "Hello Server?";
   char recv_buf [1024];
 
+  fork();
+  fork();
+  fork();
+  fork();
+  fork();
+  fork();
+  fork();
+  fork();
+
+
   fd = socket(PF_INET, SOCK_STREAM, 0);
 
   memset(&client_addr, 0, sizeof(client_addr));
