@@ -4,6 +4,8 @@
 
 #include <pthread.h>
 
+#include <syscall.h>
+
 void init_thread_pool(thread_pool *tp, size_t th_num, size_t e_size, size_t q_size)
 {
   int i;
@@ -17,9 +19,9 @@ void init_thread_pool(thread_pool *tp, size_t th_num, size_t e_size, size_t q_si
   }
 }
 
-int8_t add_job_in_pool(thread_pool *tp, job *job)
+int8_t add_job_in_pool(thread_pool *tp, job *work)
 {
-  char status = enqueue(&tp->jobs, (char*)job);
+  int8_t status = enqueue(&tp->jobs,(char *)work);
   if (status != 0)
     return -1;
   return 0;
@@ -53,11 +55,12 @@ void *thread_work(void *pool)
   char ret;
 
   thread_pool *tp = (thread_pool *)pool;
-  printf("thread work hard\n");
+  printf("[%lu] thread work hard\n",syscall(SYS_gettid));
 
   while (1) {
     ret = dequeue(&tp->jobs, (char *)&work);
     if (ret == 0)
       work.func(work.args);
+      
   }
 }
