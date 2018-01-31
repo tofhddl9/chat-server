@@ -33,9 +33,9 @@ int main()
 
   bind(listen_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
-  listen(listen_fd, 128);
+  listen(listen_fd, 256);
 
-  init_io(&io_m, 5, 128, 2);
+  init_io(&io_m, 5, 512, 2);
 
   register_handler(&io_m, 0, wait_connection);
   register_handler(&io_m, 1, chat);
@@ -94,7 +94,8 @@ void chat(void *args)
       break;
     }
     else {
-      write(fd, buf, 14);
+      printf("sended fd : %d\n",fd);
+      write(fd, &fd, sizeof(fd));
     }
   }
   
