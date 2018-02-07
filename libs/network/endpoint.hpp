@@ -2,21 +2,26 @@
 #define ENDPOINT_HPP__
 
 #include <string>
-
+#include <sys/socket.h>
+#include <netinet/in.h>
 class Endpoint {
   public :
     enum Ip_protocol {
       IPV4,
       IPV6
     };
-    EndPoint();
-    EndPoint(std::string addr, unsigned short port);
-    EndPoint(IP_protocol ip_protocol, unsigned short port);
-    ~EndPoint();
+
+    Endpoint();
+    Endpoint(std::string addr, unsigned short port);
+    Endpoint(int ip_protocol, unsigned short port);
+    ~Endpoint();
 
   private :
-    std::string address_;
+    struct sockaddr_in address_;
+    int family_;
+    const char *ip_;
     unsigned short port_;
-}
+};
+
 
 #endif
