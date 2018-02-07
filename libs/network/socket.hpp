@@ -7,14 +7,15 @@ class Socket {
     Socket(int domain, int type);
     ~Socket();
     
+    int GetFD();
     void Connect();
     void ReadSome();
     void WriteSome();
     void IsOpen();
     void Close();
-  protected :
-    int fd_;
+
   private :
+    int fd_;
 };
 
 #endif
