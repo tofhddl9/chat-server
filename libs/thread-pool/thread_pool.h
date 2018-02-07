@@ -3,7 +3,7 @@
 
 #include "thread_safe_queue.h"
 
-typedef void *(*f_ptr)(void *);
+typedef void (*f_ptr)(void *);
 
 typedef struct job {
   f_ptr func;
