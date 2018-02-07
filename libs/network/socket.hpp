@@ -14,8 +14,7 @@ class Socket {
     void Close();
   protected :
     int fd_;
-
   private :
-}
+};
 
 #endif

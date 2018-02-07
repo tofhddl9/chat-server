@@ -1,7 +1,7 @@
 #ifndef SESSION_HPP__
 #define SESSION_HPP__
 
-#include "Socket.hpp"
+#include "socket.hpp"
 
 #include <string>
 
@@ -16,10 +16,9 @@ class Session {
     void HandleReceive();
     void HandleWrite();
   
-    const int BUF_SIZE = 1024;
     Socket socket_;
     std::string write_message_;
-    char receive_buf_[BUF_SIZE];
-}
+    char receive_buf_[1024];
+};
 
 #endif
