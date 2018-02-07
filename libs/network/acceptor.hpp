@@ -1,18 +1,21 @@
 #ifndef ACCEPTOR_HPP__
 #define ACCEPTOR_HPP__
 
-#include "Socket.hpp"
-#include "Endpoint.hpp"
+#include "socket.hpp"
+#include "endpoint.hpp"
 
 class Acceptor {
   public :
+    Acceptor();
     Acceptor(Socket listen_sock, Endpoint ep, int backlog);
     ~Acceptor();
 
-    void Bind(Endpoint ep);
-    void Listen(int backlog);
-    void Accept(Socket listen_fd);
+    int GetListenFD();
+    //void Bind(Endpoint ep);
+    //void Listen(int backlog);
+    //void Accept(int listen_fd);
   private :
-}
+    int listen_fd_;
+};
 
 #endif
